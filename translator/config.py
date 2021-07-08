@@ -1,13 +1,15 @@
 from dataclasses import dataclass
 from typing import Union
+from os.path import expanduser, join
 
 import yaml
 
 
 @dataclass
 class Config:
-    host: str
-    language_code: str
+    host: str = "https://api.dictionaryapi.dev"
+    language_code: str = "en_US"
+    db_path: str = join(expanduser("~"), ".cli_translator.db")
 
 
 class ConfigReader:
@@ -24,29 +26,13 @@ class ConfigReader:
         try:
             with open(self.file_path, "r") as file:
                 cfg = yaml.load(file)
-                return Config(cfg.get('host'), cfg.get("language_code"))
+                return Config(cfg.get('host'), cfg.get("language_code"), cfg.get("db_path"))
         except OSError as err:
             print("Something goes wrong during file opening: {}".format(err.strerror))
             return None
 
     def merge(self, file_conf: Union[Config, None]) -> Config:
-        """
-        Configs from appilication.yml will merge with default values
-        """
-        if file_conf:
-            merged_conf = Config(
-                file_conf.host if file_conf.host else "api.dictionaryapi.dev",
-                file_conf.language_code if file_conf.language_code else "en_US"
-            )
-        else:
-            merged_conf = Config(
-                "api.dictionaryapi.dev",
-                "en_US"
-            )
-        if self.is_config_valid(merged_conf):
-            return merged_conf
-        else:
-            raise Exception("Invalid config: {}".format(merged_conf))
+        return self.is_config_valid(file_conf) if file_conf else Config()
 
     @staticmethod
     def is_config_valid(cfg: Config) -> bool:

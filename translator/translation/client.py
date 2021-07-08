@@ -1,9 +1,9 @@
-from typing import Dict, Any
-from func import objectify
+from typing import Dict, Any, List
+from translator.func import objectify
 import json
 import requests
 
-from config import Config
+from translator.config import Config
 
 
 class DictionaryLookupApi:
@@ -12,23 +12,43 @@ class DictionaryLookupApi:
     """
 
     def __init__(self, config: Config):
-        self.config = config
+        if DictionaryLookupApi._is_conf_valid(config):
+            self.config = config
+        else:
+            raise Exception(f"Configuration is invalid: {config}".format(config=config))
+
+    @staticmethod
+    def _is_conf_valid(config: Config) -> bool:
+        return config is not None and \
+               config.host is not None \
+               and config.language_code is not None
 
     def translate(self, inpt: str):
-        resource = '/api/v2/entries/{language_code}/{word}'.format(language_code=self.config.language_code, word=inpt)
-        url = self._get_url(self.config, resource)
+        url = '{host}/api/v2/entries/{language_code}/{word}'.format(
+            host=self.config.host, language_code=self.config.language_code, word=inpt)
         response = requests.request("GET", url)
-        if response.status_code == requests.codes.ok:
-            return TranslationResult(response.json())
+        if response.ok:
+            result_json = response.json()
+            return TranslationResult(result_json) if self._is_translation_found(result_json) else None
+        elif response.status_code == requests.codes.not_found:
+            return None
         else:
             response.raise_for_status()
 
-    def _get_url(self, config: Config, resources: str) -> str:
-        return "https://{}{}".format(config.host, resources)
+    @staticmethod
+    def _is_translation_found(result) -> bool:
+        return type(result) is list and len(result) > 0 and result[0]['word']
+
+
+class TREncoder(json.JSONEncoder):
+    def default(self, o: Any) -> Any:
+        return o.__dict__
 
 
 class TranslationResult:
     """A class for LookupResponse
+
+    Only the first variant will be handled if several will return.
 
     Table below provides typical attributes of LookupResponse.
     Since attributes are dynamically provided there is not a guarantee
@@ -55,21 +75,17 @@ class TranslationResult:
 
     """
 
-    def __init__(self, data: Dict[str, Any]):
-        """Assume only one element in source array exists"""
-        if not self._is_source_dict_valid(data):
-            raise Exception("Invalid dictionary for LookupResponse: {data}")
-        self.output = objectify(data)[0]
+    def __init__(self, data: List[dict]):
+        objectified = objectify(data[0])
+        self.word = objectified.word
+        self.phonetics = objectified.phonetics
+        self.meanings = objectified.meanings
 
     def is_empty(self) -> bool:
-        return not self.output.__dict__.get('word')
+        return not self.word
 
     def to_dict(self) -> dict:
         return self.__dict__
 
     def to_json(self) -> str:
-        return json.dumps(self.__dict__)
-
-    def _is_source_dict_valid(self, data: Dict[str, Any]) -> bool:
-        return len(data) == 1 and \
-               data[0] is not None
+        return json.dumps([self], cls=TREncoder)

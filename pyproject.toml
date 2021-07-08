@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "anki-card-creator"
+name = "cli-translator"
 version = "0.1.0"
 description = ""
 authors = ["Astashov Artem <asst.art@gmail.com>"]
@@ -12,3 +12,6 @@ pyyaml = "^5.3"
 PyInquirer = "^1.0.3"
 click = "^7.1.2"
 rich = "10.2.2"
+
+[tool.poetry.dev-dependencies]
+nose = "^1.3.7"

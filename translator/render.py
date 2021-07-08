@@ -2,36 +2,42 @@ from rich.table import Table
 from rich.console import Console
 from rich.text import Text
 from rich.style import Style
+from translator.model import Translation
+from typing import List
 
-from card import Card
 
+def render_translations(translation: List[Translation], console: Console):
+    tables = []
+    for tr in translation:
+        table = Table(show_header=False)
+        table.add_column("Source Word", style="dark_cyan", no_wrap=True)
+        table.add_column("Word Info", width=50)
+        table.add_row(tr.word, tr.meaning.part_of_speech, style="dark_cyan")
 
-def render_anki_card(card: Card, console: Console):
-    table = Table(show_header=False)
-    table.add_column("Source Word", style="dark_cyan", no_wrap=True)
-    table.add_column("Word Info", width=50)
+        if len(tr.phonetics) > 0:
+            table.add_row("", tr.phonetics[0].text, style=Style(color="bright_cyan", bold=True))
 
-    table.add_row(card.source_word, card.part_of_speech, style="dark_cyan")
-
-    if len(card.translations) > 0:
         table.add_row("", "")
-        table.add_row("", "Translations", style=Style(color="bright_cyan", bold=True))
-        for i in range(0, len(card.translations)):
-            table.add_row("", card.translations[i], style="cyan2")
 
-    if len(card.synonyms) > 0:
-        table.add_row("", "")
-        table.add_row("", "Synonyms", style=Style(color="bright_blue", bold=True))
-        for i in range(0, len(card.synonyms)):
-            table.add_row("", card.synonyms[i], style="sky_blue3")
+        if tr.meaning:
+            table.add_row("", tr.meaning.part_of_speech, style=Style(color="bright_blue", bold=True))
+            table.add_row("", "")
+            if tr.meaning.definitions:
+                for d in tr.meaning.definitions:
+                    table.add_row("", d.definition, style=Style(color="spring_green1", bold=True))
+                    table.add_row("", "")
+                    table.add_row("", d.example, style=Style(color="blue_violet", bold=True))
+                    table.add_row("", "")
 
-    if len(card.examples) > 0:
-        table.add_row("", "")
-        table.add_row("", "Usage", style=Style(color="bright_green", bold=True))
-        for i in range(0, len(card.examples)):
-            table.add_row("", card.examples[i], style="dark_sea_green4")
+                    if d.synonyms:
+                        top_syns = d.synonyms if len(d.synonyms) < 5 else d.synonyms[0: 4]
+                        for s in top_syns:
+                            table.add_row("", s, style=Style(color="steel_blue3", bold=True))
+                        table.add_row("", "")
+        tables.append(table)
 
-    console.print(table)
+    for t in tables:
+        console.print(t)
 
 
 def render_word_not_found(word: str, console: Console):

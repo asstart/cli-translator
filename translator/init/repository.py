@@ -13,7 +13,7 @@ class InitRepository:
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS
-                TRANSLATIONS
+                REQUESTED_WORDS
                 (
                 session_id VARCHAR(36),
                 insert_timestamp TEXT DEFAULT CURRENT_TIMESTAMP,

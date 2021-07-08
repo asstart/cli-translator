@@ -17,8 +17,9 @@ def objectify(source_obj):
     if not isinstance(source_obj, dict):
         return source_obj
 
-    class Obj:
-        pass
+    class Obj(object):
+        def __getattr__(self, item):
+            return None
 
     obj = Obj()
 
@@ -26,3 +27,4 @@ def objectify(source_obj):
         obj.__dict__[key] = objectify(source_obj[key])
 
     return obj
+

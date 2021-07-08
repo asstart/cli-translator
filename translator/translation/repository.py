@@ -1,7 +1,8 @@
-import sqlite3
-
-from typing import Union
 import json
+import sqlite3
+from typing import Union
+
+from translator.translation.client import TranslationResult
 
 
 class TranslationRepository:
@@ -26,7 +27,10 @@ class TranslationRepository:
         finally:
             cursor.close()
 
-    def get_by_word(self, input_word) -> Union[str, None]:
+    def get_by_word(self, input_word) -> Union[TranslationResult, None]:
+        if input_word is None or not input_word:
+            return None
+
         cursor = self.connection.cursor()
         try:
             cursor.execute(
@@ -41,6 +45,8 @@ class TranslationRepository:
             if row is None:
                 return None
             else:
-                return row[0]
+                return TranslationResult(json.loads(row[0]))
         finally:
             cursor.close()
+
+
