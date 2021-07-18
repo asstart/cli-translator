@@ -1,7 +1,6 @@
 from translator.func import objectify
 
-
-class TestDict2Obj:
+class TestDict2Obj(object):
 
     def test_one_level_dict_to_obj(self):
         source_dict = {'A': 1, 'B': 2}

@@ -54,13 +54,13 @@ class CsvWriter:
 
     @staticmethod
     def _extract_top_audio_link(phonetics: List[Phonetic]) -> Union[str, None]:
-        if phonetics is None or not phonetics[0]:
+        if phonetics is None or len(phonetics) == 0:
             return None
         return phonetics[0].audio_link
 
     @staticmethod
     def _extract_top_transcription(phonetics: List[Phonetic]) -> Union[str, None]:
-        if phonetics is None or not phonetics[0]:
+        if phonetics is None or len(phonetics) == 0:
             return None
         return phonetics[0].text
 
@@ -74,7 +74,7 @@ class CsvWriter:
     def _extract_top_definition(meaning: Meaning) -> Union[str, None]:
         if meaning is None or \
                 meaning.definitions is None \
-                or not meaning.definitions[0] or \
+                or len(meaning.definitions) == 0 or \
                 meaning.definitions[0].definition is None:
             return None
         return meaning.definitions[0].definition.replace(";", ",")
@@ -83,7 +83,7 @@ class CsvWriter:
     def _extract_top_example(meaning: Meaning) -> Union[str, None]:
         if meaning is None or \
                 meaning.definitions is None \
-                or not meaning.definitions[0] or \
+                or len(meaning.definitions) == 0 or \
                 meaning.definitions[0].example is None:
             return None
         return meaning.definitions[0].example.replace(";", ",")
@@ -92,7 +92,7 @@ class CsvWriter:
     def _extract_top_synonyms(meaning: Meaning) -> Union[str, None]:
         if meaning is None or \
                 meaning.definitions is None \
-                or not meaning.definitions[0] or \
+                or len(meaning.definitions) == 0 or \
                 meaning.definitions[0].synonyms is None or \
                 not meaning.definitions[0].synonyms:
             return None
